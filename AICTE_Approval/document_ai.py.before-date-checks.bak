@@ -1,0 +1,108 @@
+﻿from pathlib import Path
+import re
+import pytesseract
+from PIL import Image
+import pymupdf
+
+TESSERACT_EXE = Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe")
+if TESSERACT_EXE.exists():
+    pytesseract.pytesseract.tesseract_cmd = str(TESSERACT_EXE)
+
+def extract_document_text(file_path):
+    path = Path(file_path)
+
+    if not path.exists():
+        return {"status": "Needs Manual Review", "reason": "File not found", "text": ""}
+
+    if path.stat().st_size < 100:
+        return {
+            "status": "Needs Manual Review",
+            "reason": "File is unusually small; it may be a dummy or invalid document",
+            "text": ""
+        }
+
+    try:
+        suffix = path.suffix.lower()
+        text = ""
+
+        if suffix == ".pdf":
+            with pymupdf.open(path) as pdf:
+                if pdf.is_encrypted:
+                    return {
+                        "status": "Needs Manual Review",
+                        "reason": "Encrypted PDF requires manual review",
+                        "text": ""
+                    }
+
+                # First try selectable PDF text.
+                text = "\n".join(page.get_text("text") for page in pdf).strip()
+
+                # If no selectable text exists, OCR rendered pages.
+                if not text:
+                    page_text = []
+                    for page in pdf:
+                        pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), alpha=False)
+                        image = Image.frombytes(
+                            "RGB",
+                            [pix.width, pix.height],
+                            pix.samples
+                        )
+                        page_text.append(pytesseract.image_to_string(image))
+                    text = "\n".join(page_text).strip()
+
+        elif suffix in {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}:
+            with Image.open(path) as image:
+                text = pytesseract.image_to_string(image).strip()
+
+        else:
+            return {
+                "status": "Needs Manual Review",
+                "reason": "Unsupported file type",
+                "text": ""
+            }
+
+        if len(text.strip()) < 10:
+            return {
+                "status": "Needs Manual Review",
+                "reason": "Unable to extract enough readable text; manual review required",
+                "text": text
+            }
+
+        return {
+            "status": "Text Extracted",
+            "reason": "Text extracted; this does not authenticate the document",
+            "text": text
+        }
+
+    except Exception as exc:
+        return {
+            "status": "Needs Manual Review",
+            "reason": f"Extraction failed: {type(exc).__name__}",
+            "text": ""
+        }
+
+
+def inspect_document_text(text, expected_institution=None):
+    normalized = re.sub(r"\s+", " ", text or "").strip()
+    findings = []
+
+    if len(normalized) < 30:
+        findings.append({
+            "type": "Low Text Content",
+            "severity": "Review",
+            "evidence": "Extracted text is very short; check document readability and completeness"
+        })
+
+    if expected_institution:
+        if expected_institution.casefold() not in normalized.casefold():
+            findings.append({
+                "type": "Institution Name Not Found",
+                "severity": "Review",
+                "evidence": f"Expected institution name was not found in extracted text: {expected_institution}"
+            })
+
+    return {
+        "status": "Needs Manual Review" if findings else "Text Extracted - Review Required",
+        "findings": findings
+    }
+
