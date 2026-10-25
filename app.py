@@ -1894,6 +1894,56 @@ with app.app_context():
             db.session.add(Application(**item))
 
     db.session.commit()
+    
+    # Demo alerts for presentation; safe to run repeatedly.
+    from models import PersistentAlert
+
+    apex = Application.query.filter_by(
+        tracking_id="DEMO-AICTE-001"
+    ).first()
+
+    horizon = Application.query.filter_by(
+        tracking_id="DEMO-AICTE-004"
+    ).first()
+
+    demo_alerts = []
+
+    if apex:
+        demo_alerts.append({
+            "alert_key": "demo:missing-document:DEMO-AICTE-001",
+            "application_id": apex.id,
+            "alert_type": "Demo Missing Document",
+            "title": "Affiliation document requires verification",
+            "details": (
+                "Demo alert: verify the affiliation document "
+                "for Apex Institute of Technology."
+            ),
+            "status": "Open",
+        })
+
+    if horizon:
+        demo_alerts.append({
+            "alert_key": "demo:integrity-review:DEMO-AICTE-004",
+            "application_id": horizon.id,
+            "alert_type": "Document Integrity Review",
+            "title": "Potential duplicate document flagged",
+            "details": (
+                "Demo-only flag for Horizon Technical University. "
+                "Manual review is required; this is not a confirmed finding."
+            ),
+            "status": "Open",
+        })
+
+    for item in demo_alerts:
+        existing = PersistentAlert.query.filter_by(
+            alert_key=item["alert_key"]
+        ).first()
+
+        if not existing:
+            db.session.add(PersistentAlert(**item))
+
+    db.session.commit()
+
 
     for key, label, value, description in sample_rules:
         if not RegulatoryRule.query.filter_by(rule_key=key).first():
