@@ -1830,6 +1830,71 @@ with app.app_context():
         ("manual_review_all_integrity_flags", "Require human review for integrity flags", "true", "Do not automatically declare uploaded documents fraudulent."),
         ("email_alerts_enabled", "Email alert sending enabled", "false", "Email delivery works only after SMTP environment settings are configured."),
     ]
+    
+    # Fictional SIH demo applications; safe to run repeatedly.
+    demo_applications = [
+        {
+            "tracking_id": "DEMO-AICTE-001",
+            "institution_name": "Apex Institute of Technology",
+            "application_type": "New Institution Approval",
+            "state": "Karnataka",
+            "current_stage": "Document Verification",
+            "status": "Under Review",
+            "assigned_officer": "Demo Review Officer",
+            "remarks": "Demo case: affiliation document requires verification.",
+        },
+        {
+            "tracking_id": "DEMO-AICTE-002",
+            "institution_name": "Greenfield Engineering College",
+            "application_type": "Extension of Approval",
+            "state": "Tamil Nadu",
+            "current_stage": "Compliance Review",
+            "status": "Compliant",
+            "assigned_officer": "Demo Compliance Officer",
+            "remarks": "Demo case: compliance checks completed.",
+        },
+        {
+            "tracking_id": "DEMO-AICTE-003",
+            "institution_name": "Sunrise Institute of Management",
+            "application_type": "New Institution Approval",
+            "state": "Maharashtra",
+            "current_stage": "Application Review",
+            "status": "Pending",
+            "assigned_officer": "Demo Review Officer",
+            "remarks": "Demo case: faculty details require completion.",
+        },
+        {
+            "tracking_id": "DEMO-AICTE-004",
+            "institution_name": "Horizon Technical University",
+            "application_type": "Change of Intake",
+            "state": "Telangana",
+            "current_stage": "Integrity Review",
+            "status": "Under Review",
+            "assigned_officer": "Demo Integrity Officer",
+            "remarks": "Demo case: potential duplicate document; manual review required.",
+        },
+        {
+            "tracking_id": "DEMO-AICTE-005",
+            "institution_name": "Riverdale College of Engineering",
+            "application_type": "Renewal",
+            "state": "Kerala",
+            "current_stage": "Approval Completed",
+            "status": "Approved",
+            "assigned_officer": "Demo Approval Officer",
+            "remarks": "Fictional demo case: approval workflow completed.",
+        },
+    ]
+
+    for item in demo_applications:
+        existing = Application.query.filter_by(
+            tracking_id=item["tracking_id"]
+        ).first()
+
+        if not existing:
+            db.session.add(Application(**item))
+
+    db.session.commit()
+
     for key, label, value, description in sample_rules:
         if not RegulatoryRule.query.filter_by(rule_key=key).first():
             db.session.add(RegulatoryRule(rule_key=key, label=label, value=value, description=description))
