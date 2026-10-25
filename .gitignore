@@ -3,8 +3,7 @@ __pycache__/
 .venv/
 .env
 .env.local
+instance/.secret_key
 instance/
 uploads/
-node_modules/
-dist/
 *.db
