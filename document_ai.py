@@ -8,10 +8,20 @@ from PIL import Image
 import pymupdf
 
 
-TESSERACT_EXE = Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe")
 
-if TESSERACT_EXE.exists():
-    pytesseract.pytesseract.tesseract_cmd = str(TESSERACT_EXE)
+import os
+import shutil
+
+if os.name == "nt":
+    TESSERACT_EXE = Path(
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    )
+    if TESSERACT_EXE.exists():
+        pytesseract.pytesseract.tesseract_cmd = str(TESSERACT_EXE)
+else:
+    tesseract_path = shutil.which("tesseract")
+    if tesseract_path:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
 
 # --------------------------------------------------
