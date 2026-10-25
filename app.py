@@ -18,7 +18,25 @@ except ImportError:
     pass
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
+
+frontend_url = os.environ.get(
+    "FRONTEND_URL", "http://localhost:5173"
+).rstrip("/")
+
+CORS(
+    app,
+    supports_credentials=True,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                frontend_url,
+            ]
+        }
+    },
+)
+
 
 configured_secret = os.environ.get("SECRET_KEY", "").strip()
 if not configured_secret or configured_secret.lower().startswith("replace-with-"):
