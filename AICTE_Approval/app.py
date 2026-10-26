@@ -60,7 +60,7 @@ if not configured_secret or configured_secret.lower().startswith("replace-with-"
         app.logger.warning("SECRET_KEY was not configured; using a generated local development key. Set SECRET_KEY in .env for stable sessions.")
 app.config["SECRET_KEY"] = configured_secret or secrets.token_urlsafe(48)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SAMESITE"] = "None"
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("COOKIE_SECURE", "0") == "1"
 app.config["PERMANENT_SESSION_LIFETIME"] = 60 * 60 * 8
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///aicte.db")
