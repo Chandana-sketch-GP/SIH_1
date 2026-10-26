@@ -271,6 +271,10 @@ const filtered = useMemo(() => mine.filter(a => {
     const requirements=requirementResult.documents||[];
     const existingResult=await backend(`/api/applications/${application.backendId}/documents`);
     const existingDocs=existingResult.documents||[];
+    console.log("Application type:", application.type);
+    console.log("Requirements:", requirements);
+    console.log("Existing documents:", existingDocs);
+    console.log("Pending requirements:", pendingRequirements);
     const existingByRequirement=new Map(existingDocs.map(d=>[Number(d.requirement_id),d]));
     const pendingRequirements = requirements.filter(r => {
      const old = existingByRequirement.get(Number(r.id));
