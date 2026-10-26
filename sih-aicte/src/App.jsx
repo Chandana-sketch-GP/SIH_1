@@ -277,7 +277,7 @@ const filtered = useMemo(() => mine.filter(a => {
     console.log("Application type:", application.type);
     console.log("Requirements:", requirements);
     console.log("Existing documents:", existingDocs);
-    console.log("Pending requirements:", pendingRequirements);
+    
     const existingByRequirement=new Map(existingDocs.map(d=>[Number(d.requirement_id),d]));
     const pendingRequirements = requirements.filter(r => {
      const old = existingByRequirement.get(Number(r.id));
@@ -285,6 +285,7 @@ const filtered = useMemo(() => mine.filter(a => {
      const status = String(old.upload_status || '').trim().toLowerCase();
      return ['deficient', 'rejected'].includes(status);
      });
+    console.log("Pending requirements:", pendingRequirements);
     if(selectedFiles.length>pendingRequirements.length){
       throw new Error(`There are only ${pendingRequirements.length} unfilled or deficient document requirements available for upload. Upload fewer files or review existing documents.`);
     }
