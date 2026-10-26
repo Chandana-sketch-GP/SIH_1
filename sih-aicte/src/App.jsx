@@ -272,10 +272,12 @@ const filtered = useMemo(() => mine.filter(a => {
     const existingResult=await backend(`/api/applications/${application.backendId}/documents`);
     const existingDocs=existingResult.documents||[];
     const existingByRequirement=new Map(existingDocs.map(d=>[Number(d.requirement_id),d]));
-    const pendingRequirements=requirements.filter(r=>{
-      const old=existingByRequirement.get(Number(r.id));
-      return !old || ['deficient','rejected'].includes(String(old.upload_status||'').toLowerCase());
-    });
+    const pendingRequirements = requirements.filter(r => {
+     const old = existingByRequirement.get(Number(r.id));
+     if (!old) return true;
+     const status = String(old.upload_status || '').trim().toLowerCase();
+     return ['deficient', 'rejected'].includes(status);
+     });
     if(selectedFiles.length>pendingRequirements.length){
       throw new Error(`There are only ${pendingRequirements.length} unfilled or deficient document requirements available for upload. Upload fewer files or review existing documents.`);
     }
