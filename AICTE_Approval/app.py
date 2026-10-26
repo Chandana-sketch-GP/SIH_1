@@ -1950,6 +1950,59 @@ with app.app_context():
             db.session.add(RegulatoryRule(rule_key=key, label=label, value=value, description=description))
     db.session.commit()
 
+    # Seed sample document requirements if they do not already exist.
+    # These are prototype placeholders, not official AICTE requirements.
+    from models import DocumentRequirement
+
+    document_requirement_types = [
+        "New Institution",
+        "Extension of Approval",
+        "Increase in Intake",
+        "New Course",
+        "Change of Institution Name",
+        "Closure of Course",
+    ]
+
+    base_document_requirements = [
+        (
+            "Application Form",
+            "Completed application form for this prototype workflow",
+            True,
+        ),
+        (
+            "Institution Registration / Identity Document",
+            "Sample requirement; verify against applicable official guidance",
+            True,
+        ),
+        (
+            "Supporting Evidence",
+            "Application-specific supporting evidence; sample requirement only",
+            True,
+        ),
+    ]
+
+    for app_type in document_requirement_types:
+        for sequence, (name, description, mandatory) in enumerate(
+            base_document_requirements, 1
+        ):
+            existing = DocumentRequirement.query.filter_by(
+                application_type=app_type,
+                document_name=name,
+            ).first()
+
+            if not existing:
+                db.session.add(
+                    DocumentRequirement(
+                        application_type=app_type,
+                        document_name=name,
+                        description=description,
+                        is_mandatory=mandatory,
+                        sequence_order=sequence,
+                    )
+                )
+
+    db.session.commit()
+
 @app.route("/api/integrity-reviews", methods=["GET"])
 def list_integrity_reviews():
     """Officer-only human review queue; automated flags are advisory."""
