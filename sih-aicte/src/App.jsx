@@ -265,8 +265,11 @@ const filtered = useMemo(() => mine.filter(a => {
     setApplications(withDocuments);
     return withDocuments;
   }
+ 
 
   async function uploadFilesToApplication(application, selectedFiles){
+    console.log("Actual application type:", application.type);
+      
     const requirementResult=await backend(`/api/document-requirements?application_type=${encodeURIComponent(application.type)}`);
     const requirements=requirementResult.documents||[];
     const existingResult=await backend(`/api/applications/${application.backendId}/documents`);
