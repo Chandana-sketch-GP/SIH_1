@@ -18,7 +18,7 @@ const KEY = 'aicte_portal_v1';
 
 const SESSION_KEY = 'aicte_portal_session_v1';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+const API = import.meta.env.VITE_API_BASE_URL || 'https://summati.onrender.com';
 
 async function backend(path, options={}) {
 
