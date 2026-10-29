@@ -1808,6 +1808,48 @@ def submit_document_renewal(application_id, document_id):
 with app.app_context():
     from models import Application, WorkflowStage, AuditLog, RegulatoryRule
     db.create_all()
+    
+    # Create staff accounts from Render environment variables.
+    from models import User
+
+    staff_accounts = [
+        ("AICTE_OFFICER_EMAIL", "AICTE_OFFICER_PASSWORD", "officer"),
+        ("EVC_COMMITTEE_EMAIL", "EVC_COMMITTEE_PASSWORD", "committee"),
+        ("REGULATORY_AUTHORITY_EMAIL", "REGULATORY_AUTHORITY_PASSWORD", "authority"),
+    ]
+
+    for email_var, password_var, role in staff_accounts:
+        staff_email = os.environ.get(email_var, "").strip().lower()
+        staff_password = os.environ.get(password_var, "")
+
+        if not staff_email and not staff_password:
+            continue
+
+        if not staff_email or not staff_password or "@" not in staff_email:
+            app.logger.warning(
+                "Staff account skipped: check the configured email and password variables."
+            )
+            continue
+
+        if len(staff_password) < 10:
+            app.logger.warning(
+                "Staff account skipped: password must contain at least 10 characters."
+            )
+            continue
+
+        existing_user = User.query.filter_by(email=staff_email).first()
+
+        if existing_user is None:
+            user = User(email=staff_email, role=role)
+            user.set_password(staff_password)
+            db.session.add(user)
+        elif existing_user.role != role:
+            app.logger.error(
+                "Staff account skipped: configured email already belongs to another role."
+            )
+
+    db.session.commit()
+
     # Safe SQLite additive migration for existing demo databases.
     if db.engine.dialect.name == "sqlite":
         from sqlalchemy import text as sql_text
